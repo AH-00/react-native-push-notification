@@ -60,7 +60,8 @@ public class RNPushNotificationHelper {
     public RNPushNotificationHelper(Application context) {
         this.context = context;
         this.config = new RNPushNotificationConfig(context);
-        this.scheduledNotificationsPersistence = context.getSharedPreferences(RNPushNotificationHelper.PREFERENCES_KEY, Context.MODE_PRIVATE);
+        this.scheduledNotificationsPersistence = context.getSharedPreferences(RNPushNotificationHelper.PREFERENCES_KEY,
+                Context.MODE_PRIVATE);
     }
 
     public Class getMainActivityClass() {
@@ -88,14 +89,14 @@ public class RNPushNotificationHelper {
             Class<?> activityClass = Class.forName(className);
             Intent activityIntent = new Intent(context, activityClass);
 
-            if(bundle != null) {
+            if (bundle != null) {
                 activityIntent.putExtra("notification", bundle);
             }
 
             activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
             context.startActivity(activityIntent);
-        } catch(Exception e) {
+        } catch (Exception e) {
             Log.e(LOG_TAG, "Class not found", e);
             return;
         }
@@ -109,7 +110,9 @@ public class RNPushNotificationHelper {
             notificationIntent.putExtra(RNPushNotificationPublisher.NOTIFICATION_ID, notificationID);
             notificationIntent.putExtras(bundle);
 
-            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT;
+            int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                    : PendingIntent.FLAG_UPDATE_CURRENT;
 
             return PendingIntent.getBroadcast(context, notificationID, notificationIntent, flags);
         } catch (Exception e) {
@@ -175,29 +178,30 @@ public class RNPushNotificationHelper {
                 bundle.getString("id"), Long.toString(fireDate)));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (allowWhileIdle && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                getAlarmManager().setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireDate, pendingIntent);
+                getAlarmManager().setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, fireDate, pendingIntent);
             } else {
-                getAlarmManager().setExact(AlarmManager.RTC_WAKEUP, fireDate, pendingIntent);
+                getAlarmManager().setWindow(AlarmManager.RTC_WAKEUP, fireDate, 600000, pendingIntent);
             }
         } else {
             getAlarmManager().set(AlarmManager.RTC_WAKEUP, fireDate, pendingIntent);
         }
     }
 
-
     public void sendToNotificationCentre(final Bundle bundle) {
-      RNPushNotificationPicturesAggregator aggregator = new RNPushNotificationPicturesAggregator(new RNPushNotificationPicturesAggregator.Callback() {
-        public void call(Bitmap largeIconImage, Bitmap bigPictureImage, Bitmap bigLargeIconImage) {
-          sendToNotificationCentreWithPicture(bundle, largeIconImage, bigPictureImage, bigLargeIconImage);
-        }
-      });
+        RNPushNotificationPicturesAggregator aggregator = new RNPushNotificationPicturesAggregator(
+                new RNPushNotificationPicturesAggregator.Callback() {
+                    public void call(Bitmap largeIconImage, Bitmap bigPictureImage, Bitmap bigLargeIconImage) {
+                        sendToNotificationCentreWithPicture(bundle, largeIconImage, bigPictureImage, bigLargeIconImage);
+                    }
+                });
 
-      aggregator.setLargeIconUrl(context, bundle.getString("largeIconUrl"));
-      aggregator.setBigLargeIconUrl(context, bundle.getString("bigLargeIconUrl"));
-      aggregator.setBigPictureUrl(context, bundle.getString("bigPictureUrl"));
+        aggregator.setLargeIconUrl(context, bundle.getString("largeIconUrl"));
+        aggregator.setBigLargeIconUrl(context, bundle.getString("bigLargeIconUrl"));
+        aggregator.setBigPictureUrl(context, bundle.getString("bigPictureUrl"));
     }
 
-    public void sendToNotificationCentreWithPicture(Bundle bundle, Bitmap largeIconBitmap, Bitmap bigPictureBitmap, Bitmap bigLargeIconBitmap) {
+    public void sendToNotificationCentreWithPicture(Bundle bundle, Bitmap largeIconBitmap, Bitmap bigPictureBitmap,
+            Bitmap bigLargeIconBitmap) {
         try {
             Class intentClass = getMainActivityClass();
             if (intentClass == null) {
@@ -206,8 +210,11 @@ public class RNPushNotificationHelper {
             }
 
             if (bundle.getString("message") == null) {
-                // this happens when a 'data' notification is received - we do not synthesize a local notification in this case
-                Log.d(LOG_TAG, "Ignore this message if you sent data-only notification. Cannot send to notification centre because there is no 'message' field in: " + bundle);
+                // this happens when a 'data' notification is received - we do not synthesize a
+                // local notification in this case
+                Log.d(LOG_TAG,
+                        "Ignore this message if you sent data-only notification. Cannot send to notification centre because there is no 'message' field in: "
+                                + bundle);
                 return;
             }
 
@@ -269,13 +276,13 @@ public class RNPushNotificationHelper {
                         visibility = NotificationCompat.VISIBILITY_PRIVATE;
                 }
             }
-            
+
             String channel_id = bundle.getString("channelId");
 
-            if(channel_id == null) {
+            if (channel_id == null) {
                 channel_id = this.config.getNotificationDefaultChannelId();
             }
-            
+
             NotificationCompat.Builder notification = new NotificationCompat.Builder(context, channel_id)
                     .setContentTitle(title)
                     .setTicker(bundle.getString("ticker"))
@@ -283,10 +290,11 @@ public class RNPushNotificationHelper {
                     .setPriority(priority)
                     .setAutoCancel(bundle.getBoolean("autoCancel", true))
                     .setOnlyAlertOnce(bundle.getBoolean("onlyAlertOnce", false));
-            
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) { // API 24 and higher
                 // Restore showing timestamp on Android 7+
-                // Source: https://developer.android.com/reference/android/app/Notification.Builder.html#setShowWhen(boolean)
+                // Source:
+                // https://developer.android.com/reference/android/app/Notification.Builder.html#setShowWhen(boolean)
                 boolean showWhen = bundle.getBoolean("showWhen", true);
 
                 notification.setShowWhen(showWhen);
@@ -296,17 +304,17 @@ public class RNPushNotificationHelper {
                 // Changing Default mode of notification
                 notification.setDefaults(Notification.DEFAULT_LIGHTS);
             }
-      
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) { // API 20 and higher
-              String group = bundle.getString("group");
+                String group = bundle.getString("group");
 
-              if (group != null) {
-                  notification.setGroup(group);
-              }
+                if (group != null) {
+                    notification.setGroup(group);
+                }
 
-              if (bundle.containsKey("groupSummary") || bundle.getBoolean("groupSummary")) {
-                  notification.setGroupSummary(bundle.getBoolean("groupSummary"));
-              }
+                if (bundle.containsKey("groupSummary") || bundle.getBoolean("groupSummary")) {
+                    notification.setGroupSummary(bundle.getBoolean("groupSummary"));
+                }
             }
 
             String numberString = bundle.getString("number");
@@ -325,7 +333,7 @@ public class RNPushNotificationHelper {
                 if (smallIconResId == 0) {
                     smallIconResId = res.getIdentifier(smallIcon, "mipmap", packageName);
                 }
-            } else if(smallIcon == null) {
+            } else if (smallIcon == null) {
                 smallIconResId = res.getIdentifier("ic_notification", "mipmap", packageName);
             }
 
@@ -340,7 +348,7 @@ public class RNPushNotificationHelper {
             notification.setSmallIcon(smallIconResId);
 
             // Large icon
-            if(largeIconBitmap == null) {
+            if (largeIconBitmap == null) {
                 int largeIconResId = 0;
 
                 String largeIcon = bundle.getString("largeIcon");
@@ -350,18 +358,19 @@ public class RNPushNotificationHelper {
                     if (largeIconResId == 0) {
                         largeIconResId = res.getIdentifier(largeIcon, "mipmap", packageName);
                     }
-                } else if(largeIcon == null) {
+                } else if (largeIcon == null) {
                     largeIconResId = res.getIdentifier("ic_launcher", "mipmap", packageName);
                 }
 
                 // Before Lolipop there was no large icon for notifications.
-                if (largeIconResId != 0 && (largeIcon != null || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)) {
+                if (largeIconResId != 0
+                        && (largeIcon != null || Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)) {
                     largeIconBitmap = BitmapFactory.decodeResource(res, largeIconResId);
                 }
             }
-            
-            if (largeIconBitmap != null){
-              notification.setLargeIcon(largeIconBitmap);
+
+            if (largeIconBitmap != null) {
+                notification.setLargeIcon(largeIconBitmap);
             }
 
             String message = bundle.getString("message");
@@ -376,37 +385,36 @@ public class RNPushNotificationHelper {
 
             NotificationCompat.Style style;
 
-            if(bigPictureBitmap != null) {
+            if (bigPictureBitmap != null) {
 
-              // Big large icon
-              if(bigLargeIconBitmap == null) {
-                  int bigLargeIconResId = 0;
+                // Big large icon
+                if (bigLargeIconBitmap == null) {
+                    int bigLargeIconResId = 0;
 
-                  String bigLargeIcon = bundle.getString("bigLargeIcon");
+                    String bigLargeIcon = bundle.getString("bigLargeIcon");
 
-                  if (bigLargeIcon != null && !bigLargeIcon.isEmpty()) {
-                    bigLargeIconResId = res.getIdentifier(bigLargeIcon, "mipmap", packageName);
-                    if (bigLargeIconResId != 0) {
-                      bigLargeIconBitmap = BitmapFactory.decodeResource(res, bigLargeIconResId);
+                    if (bigLargeIcon != null && !bigLargeIcon.isEmpty()) {
+                        bigLargeIconResId = res.getIdentifier(bigLargeIcon, "mipmap", packageName);
+                        if (bigLargeIconResId != 0) {
+                            bigLargeIconBitmap = BitmapFactory.decodeResource(res, bigLargeIconResId);
+                        }
                     }
-                  }
-              }
+                }
 
-              style = new NotificationCompat.BigPictureStyle()
-                      .bigPicture(bigPictureBitmap)
-                      .setBigContentTitle(title)
-                      .setSummaryText(message)
-                      .bigLargeIcon(bigLargeIconBitmap);
-            }
-            else {
-              String bigText = bundle.getString("bigText");
+                style = new NotificationCompat.BigPictureStyle()
+                        .bigPicture(bigPictureBitmap)
+                        .setBigContentTitle(title)
+                        .setSummaryText(message)
+                        .bigLargeIcon(bigLargeIconBitmap);
+            } else {
+                String bigText = bundle.getString("bigText");
 
-              if (bigText == null) {
-                  style = new NotificationCompat.BigTextStyle().bigText(message);
-              } else {
-                  Spanned styledText = HtmlCompat.fromHtml(bigText, HtmlCompat.FROM_HTML_MODE_LEGACY);
-                  style = new NotificationCompat.BigTextStyle().bigText(styledText);
-              }
+                if (bigText == null) {
+                    style = new NotificationCompat.BigTextStyle().bigText(message);
+                } else {
+                    Spanned styledText = HtmlCompat.fromHtml(bigText, HtmlCompat.FROM_HTML_MODE_LEGACY);
+                    style = new NotificationCompat.BigTextStyle().bigText(styledText);
+                }
             }
 
             notification.setStyle(style);
@@ -456,45 +464,48 @@ public class RNPushNotificationHelper {
             int notificationID = Integer.parseInt(notificationIdString);
 
             PendingIntent pendingIntent = PendingIntent.getActivity(context, notificationID, intent,
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT);
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                            ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                            : PendingIntent.FLAG_UPDATE_CURRENT);
 
             NotificationManager notificationManager = notificationManager();
 
-            long[] vibratePattern = new long[]{0};
+            long[] vibratePattern = new long[] { 0 };
 
             if (!bundle.containsKey("vibrate") || bundle.getBoolean("vibrate")) {
-                long vibration = bundle.containsKey("vibration") ? (long) bundle.getDouble("vibration") : DEFAULT_VIBRATION;
+                long vibration = bundle.containsKey("vibration") ? (long) bundle.getDouble("vibration")
+                        : DEFAULT_VIBRATION;
                 if (vibration == 0)
                     vibration = DEFAULT_VIBRATION;
 
-                vibratePattern = new long[]{0, vibration};
+                vibratePattern = new long[] { 0, vibration };
 
-                notification.setVibrate(vibratePattern); 
+                notification.setVibrate(vibratePattern);
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { 
-              // Define the shortcutId
-              String shortcutId = bundle.getString("shortcutId");
-              
-              if (shortcutId != null) {
-                notification.setShortcutId(shortcutId);
-              }
- 
-              Long timeoutAfter = (long) bundle.getDouble("timeoutAfter");
-  
-              if (timeoutAfter != null && timeoutAfter >= 0) {
-                notification.setTimeoutAfter(timeoutAfter);
-              }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Define the shortcutId
+                String shortcutId = bundle.getString("shortcutId");
+
+                if (shortcutId != null) {
+                    notification.setShortcutId(shortcutId);
+                }
+
+                Long timeoutAfter = (long) bundle.getDouble("timeoutAfter");
+
+                if (timeoutAfter != null && timeoutAfter >= 0) {
+                    notification.setTimeoutAfter(timeoutAfter);
+                }
             }
 
             Long when = (long) bundle.getDouble("when");
-  
+
             if (when != null && when >= 0) {
-              notification.setWhen(when);
+                notification.setWhen(when);
             }
 
             notification.setUsesChronometer(bundle.getBoolean("usesChronometer", false));
-                
+
             notification.setChannelId(channel_id);
             notification.setContentIntent(pendingIntent);
 
@@ -519,7 +530,6 @@ public class RNPushNotificationHelper {
                         continue;
                     }
 
-
                     Intent actionIntent = new Intent(context, RNPushNotificationActions.class);
                     actionIntent.setAction(packageName + ".ACTION_" + i);
 
@@ -533,13 +543,16 @@ public class RNPushNotificationHelper {
                         intent.putExtra("message_id", messageId);
                     }
 
-                    int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT;
+                    int flags = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                            ? PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                            : PendingIntent.FLAG_UPDATE_CURRENT;
 
-                    PendingIntent pendingActionIntent = PendingIntent.getBroadcast(context, notificationID, actionIntent, flags);
+                    PendingIntent pendingActionIntent = PendingIntent.getBroadcast(context, notificationID,
+                            actionIntent, flags);
 
-                    if(action.equals("ReplyInput")){
-                        //Action with inline reply
-                        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT_WATCH){
+                    if (action.equals("ReplyInput")) {
+                        // Action with inline reply
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT_WATCH) {
                             RemoteInput remoteInput = new RemoteInput.Builder(KEY_TEXT_REPLY)
                                     .setLabel(bundle.getString("reply_placeholder_text"))
                                     .build();
@@ -550,18 +563,17 @@ public class RNPushNotificationHelper {
                                     .build();
 
                             notification.addAction(replyAction);
-                        }
-                        else{
+                        } else {
                             // The notification will not have action
                             break;
                         }
-                    }
-                    else{
+                    } else {
                         // Add "action" for later identifying which button gets pressed
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                          notification.addAction(new NotificationCompat.Action.Builder(icon, action, pendingActionIntent).build());
+                            notification.addAction(
+                                    new NotificationCompat.Action.Builder(icon, action, pendingActionIntent).build());
                         } else {
-                          notification.addAction(icon, action, pendingActionIntent);
+                            notification.addAction(icon, action, pendingActionIntent);
                         }
                     }
                 }
@@ -571,10 +583,13 @@ public class RNPushNotificationHelper {
             // Remove the notification from the shared preferences once it has been shown
             // to avoid showing the notification again when the phone is rebooted. If the
             // notification is not removed, then every time the phone is rebooted, we will
-            // try to reschedule all the notifications stored in shared preferences and since
+            // try to reschedule all the notifications stored in shared preferences and
+            // since
             // these notifications will be in the past time, they will be shown immediately
-            // to the user which we shouldn't do. So, remove the notification from the shared
-            // preferences once it has been shown to the user. If it is a repeating notification
+            // to the user which we shouldn't do. So, remove the notification from the
+            // shared
+            // preferences once it has been shown to the user. If it is a repeating
+            // notification
             // it will be scheduled again.
             if (scheduledNotificationsPersistence.getString(notificationIdString, null) != null) {
                 SharedPreferences.Editor editor = scheduledNotificationsPersistence.edit();
@@ -611,7 +626,8 @@ public class RNPushNotificationHelper {
         if (repeatType != null) {
             long fireDate = (long) bundle.getDouble("fireDate");
 
-            boolean validRepeatType = Arrays.asList("time", "month", "week", "day", "hour", "minute").contains(repeatType);
+            boolean validRepeatType = Arrays.asList("time", "year", "month", "week", "day", "hour", "minute")
+                    .contains(repeatType);
 
             // Sanity checks
             if (!validRepeatType) {
@@ -629,14 +645,31 @@ public class RNPushNotificationHelper {
             if ("time".equals(repeatType)) {
                 newFireDate = fireDate + repeatTime;
             } else {
+                // int repeatField = getRepeatField(repeatType);
+
+                // final Calendar nextEvent = Calendar.getInstance();
+                // nextEvent.setTimeInMillis(fireDate);
+                // // Limits repeat time increment to int instead of long
+                // int increment = repeatTime > 0 ? (int) repeatTime : 1;
+                // nextEvent.add(repeatField, increment);
+
+                // newFireDate = nextEvent.getTimeInMillis();
                 int repeatField = getRepeatField(repeatType);
 
                 final Calendar nextEvent = Calendar.getInstance();
                 nextEvent.setTimeInMillis(fireDate);
-                // Limits repeat time increment to int instead of long
                 int increment = repeatTime > 0 ? (int) repeatTime : 1;
-                nextEvent.add(repeatField, increment);
-
+                if (repeatType == "week" || repeatType == "day") {
+                    nextEvent.add(repeatField, increment);
+                } else {
+                    long originalDate = nextEvent.get(Calendar.DATE);
+                    // Limits repeat time increment to int instead of long
+                    nextEvent.add(repeatField, increment);
+                    while (originalDate != nextEvent.get(Calendar.DATE)) {
+                        nextEvent.setTimeInMillis(fireDate);
+                        nextEvent.add(repeatField, increment++);
+                    }
+                }
                 newFireDate = nextEvent.getTimeInMillis();
             }
 
@@ -651,7 +684,10 @@ public class RNPushNotificationHelper {
     }
 
     private int getRepeatField(String repeatType) {
+        // I added year to repeat types, not in original package
         switch (repeatType) {
+            case "year":
+                return Calendar.YEAR;
             case "month":
                 return Calendar.MONTH;
             case "week":
@@ -698,51 +734,52 @@ public class RNPushNotificationHelper {
         Log.i(LOG_TAG, "Clearing notification: " + notificationID);
 
         NotificationManager notificationManager = notificationManager();
-        if(tag != null) {
-          notificationManager.cancel(tag, notificationID);
+        if (tag != null) {
+            notificationManager.cancel(tag, notificationID);
         } else {
-          notificationManager.cancel(notificationID);
+            notificationManager.cancel(notificationID);
         }
     }
 
     public void clearDeliveredNotifications(ReadableArray identifiers) {
-      NotificationManager notificationManager = notificationManager();
-      for (int index = 0; index < identifiers.size(); index++) {
-        String id = identifiers.getString(index);
-        Log.i(LOG_TAG, "Removing notification with id " + id);
-        notificationManager.cancel(Integer.parseInt(id));
-      }
+        NotificationManager notificationManager = notificationManager();
+        for (int index = 0; index < identifiers.size(); index++) {
+            String id = identifiers.getString(index);
+            Log.i(LOG_TAG, "Removing notification with id " + id);
+            notificationManager.cancel(Integer.parseInt(id));
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public WritableArray getDeliveredNotifications() {
-      WritableArray result = Arguments.createArray();
-  
-      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        WritableArray result = Arguments.createArray();
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return result;
+        }
+
+        NotificationManager notificationManager = notificationManager();
+        StatusBarNotification delivered[] = notificationManager.getActiveNotifications();
+        Log.i(LOG_TAG, "Found " + delivered.length + " delivered notifications");
+        /*
+         * stay consistent to the return structure in
+         * https://facebook.github.io/react-native/docs/pushnotificationios.html#
+         * getdeliverednotifications
+         * but there is no such thing as a 'userInfo'
+         */
+        for (StatusBarNotification notification : delivered) {
+            Notification original = notification.getNotification();
+            Bundle extras = original.extras;
+            WritableMap notif = Arguments.createMap();
+            notif.putString("identifier", "" + notification.getId());
+            notif.putString("title", extras.getString(Notification.EXTRA_TITLE));
+            notif.putString("body", extras.getString(Notification.EXTRA_TEXT));
+            notif.putString("tag", notification.getTag());
+            notif.putString("group", original.getGroup());
+            result.pushMap(notif);
+        }
+
         return result;
-      }
-
-      NotificationManager notificationManager = notificationManager();
-      StatusBarNotification delivered[] = notificationManager.getActiveNotifications();
-      Log.i(LOG_TAG, "Found " + delivered.length + " delivered notifications");
-      /*
-        * stay consistent to the return structure in
-        * https://facebook.github.io/react-native/docs/pushnotificationios.html#getdeliverednotifications
-        * but there is no such thing as a 'userInfo'
-        */
-      for (StatusBarNotification notification : delivered) {
-        Notification original = notification.getNotification();
-        Bundle extras = original.extras;
-        WritableMap notif = Arguments.createMap();
-        notif.putString("identifier", "" + notification.getId());
-        notif.putString("title", extras.getString(Notification.EXTRA_TITLE));
-        notif.putString("body", extras.getString(Notification.EXTRA_TEXT));
-        notif.putString("tag", notification.getTag());
-        notif.putString("group", original.getGroup());
-        result.pushMap(notif);
-      }
-
-      return result;
 
     }
 
@@ -818,60 +855,60 @@ public class RNPushNotificationHelper {
     }
 
     public List<String> listChannels() {
-      List<String> channels = new ArrayList<>();
-      
-      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-          return channels;
-      
-      NotificationManager manager = notificationManager();
+        List<String> channels = new ArrayList<>();
 
-      if (manager == null)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            return channels;
+
+        NotificationManager manager = notificationManager();
+
+        if (manager == null)
+            return channels;
+
+        List<NotificationChannel> listChannels = manager.getNotificationChannels();
+
+        for (NotificationChannel channel : listChannels) {
+            channels.add(channel.getId());
+        }
+
         return channels;
-
-      List<NotificationChannel> listChannels = manager.getNotificationChannels();
-
-      for(NotificationChannel channel : listChannels) {
-        channels.add(channel.getId());
-      }
-
-      return channels;
     }
 
     public boolean channelBlocked(String channel_id) {
-      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-          return false;
-      
-      NotificationManager manager = notificationManager();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            return false;
 
-      if (manager == null)
-          return false;
+        NotificationManager manager = notificationManager();
 
-      NotificationChannel channel = manager.getNotificationChannel(channel_id);
+        if (manager == null)
+            return false;
 
-      if(channel == null)
-          return false;
+        NotificationChannel channel = manager.getNotificationChannel(channel_id);
 
-      return NotificationManager.IMPORTANCE_NONE == channel.getImportance();
+        if (channel == null)
+            return false;
+
+        return NotificationManager.IMPORTANCE_NONE == channel.getImportance();
     }
 
     public boolean channelExists(String channel_id) {
-      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
-          return false;
-      
-      NotificationManager manager = notificationManager();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
+            return false;
 
-      if (manager == null)
-          return false;
+        NotificationManager manager = notificationManager();
 
-      NotificationChannel channel = manager.getNotificationChannel(channel_id);
+        if (manager == null)
+            return false;
 
-      return channel != null;
+        NotificationChannel channel = manager.getNotificationChannel(channel_id);
+
+        return channel != null;
     }
 
     public void deleteChannel(String channel_id) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             return;
-        
+
         NotificationManager manager = notificationManager();
 
         if (manager == null)
@@ -880,7 +917,8 @@ public class RNPushNotificationHelper {
         manager.deleteNotificationChannel(channel_id);
     }
 
-    private boolean checkOrCreateChannel(NotificationManager manager, String channel_id, String channel_name, String channel_description, Uri soundUri, int importance, long[] vibratePattern) {
+    private boolean checkOrCreateChannel(NotificationManager manager, String channel_id, String channel_name,
+            String channel_description, Uri soundUri, int importance, long[] vibratePattern) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O)
             return false;
         if (manager == null)
@@ -888,14 +926,10 @@ public class RNPushNotificationHelper {
 
         NotificationChannel channel = manager.getNotificationChannel(channel_id);
 
-        if (
-          channel == null && channel_name != null && channel_description != null ||
-          channel != null &&
-          (
-            channel_name != null && !channel_name.equals(channel.getName()) ||
-            channel_description != null && !channel_description.equals(channel.getDescription())
-          )
-        ) {
+        if (channel == null && channel_name != null && channel_description != null ||
+                channel != null &&
+                        (channel_name != null && !channel_name.equals(channel.getName()) ||
+                                channel_description != null && !channel_description.equals(channel.getDescription()))) {
             // If channel doesn't exist create a new one.
             // If channel name or description is updated then update the existing channel.
             channel = new NotificationChannel(channel_id, channel_name, importance);
@@ -930,7 +964,9 @@ public class RNPushNotificationHelper {
 
         String channelId = channelInfo.getString("channelId");
         String channelName = channelInfo.getString("channelName");
-        String channelDescription = channelInfo.hasKey("channelDescription") ? channelInfo.getString("channelDescription") : "";
+        String channelDescription = channelInfo.hasKey("channelDescription")
+                ? channelInfo.getString("channelDescription")
+                : "";
         boolean playSound = !channelInfo.hasKey("playSound") || channelInfo.getBoolean("playSound");
         String soundName = channelInfo.hasKey("soundName") ? channelInfo.getString("soundName") : "default";
         int importance = channelInfo.hasKey("importance") ? channelInfo.getInt("importance") : 4;
@@ -941,9 +977,10 @@ public class RNPushNotificationHelper {
 
         Uri soundUri = playSound ? getSoundUri(soundName) : null;
 
-        return checkOrCreateChannel(manager, channelId, channelName, channelDescription, soundUri, importance, vibratePattern);
+        return checkOrCreateChannel(manager, channelId, channelName, channelDescription, soundUri, importance,
+                vibratePattern);
     }
-    
+
     public boolean isApplicationInForeground() {
         ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
         List<RunningAppProcessInfo> processInfos = activityManager.getRunningAppProcesses();
